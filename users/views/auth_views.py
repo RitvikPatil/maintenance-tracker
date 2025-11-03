@@ -4,8 +4,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+import logging
 
 from users.serializers.auth_serializers import CustomTokenObtainPairSerializer
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -24,4 +27,5 @@ class LogoutView(APIView):
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
+            logger.error(f"Logout failed: {str(e)}")
             return Response(status=status.HTTP_400_BAD_REQUEST)
