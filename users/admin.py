@@ -1,13 +1,26 @@
+# users/admin.py
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.translation import gettext_lazy as _
 from .models import User
 
-class UserAdmin(BaseUserAdmin):
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    list_display = ('email', 'first_name', 'last_name', 'is_staff')
-    list_filter = ('is_staff', 'is_superuser', 'is_active')
+class CustomUserChangeForm(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'is_active', 'is_staff')
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('email', 'first_name', 'last_name')
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    form = CustomUserChangeForm
+    add_form = CustomUserCreationForm
+    list_display = ('email', 'first_name', 'last_name', 'is_active', 'is_staff')
+    list_filter = ('is_staff', 'is_superuser')  # Removed is_active from here
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name')}),
@@ -16,8 +29,6 @@ class UserAdmin(BaseUserAdmin):
         }),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -26,7 +37,3 @@ class UserAdmin(BaseUserAdmin):
     )
     search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
-    filter_horizontal = ('groups', 'user_permissions',)
-
-# Now register the new UserAdmin...
-admin.site.register(User, UserAdmin)

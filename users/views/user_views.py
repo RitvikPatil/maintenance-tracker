@@ -1,4 +1,4 @@
-from rest_framework import status, generics, permissions
+from rest_framework import status, generics, permissions, serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
@@ -38,3 +38,38 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class DeleteAccountView(generics.DestroyAPIView):
+    """View for user account deletion with password confirmation"""
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # For schema generation
+
+    def get_object(self):
+        return self.request.user
+
+    def delete(self, request, *args, **kwargs):
+        user = self.get_object()
+        
+        # Get password from request data
+        password = request.data.get('password')
+        if not password:
+            return Response(
+                {"password": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Verify password
+        if not user.check_password(password):
+            return Response(
+                {"password": ["Incorrect password."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Delete the user
+        user.delete()
+        
+        return Response(
+            {"message": "Account deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT
+        )
