@@ -74,20 +74,23 @@ class VehicleSerializer(serializers.ModelSerializer):
 
 class VehicleListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for listing vehicles"""
-    primary_image = serializers.SerializerMethodField()
+    vehicle_image = serializers.SerializerMethodField()
     
     class Meta:
         model = Vehicle
         fields = [
             'id', 'make', 'model_name', 'registration_number',
-            'vehicle_type', 'year', 'primary_image'
+            'vehicle_type', 'year', 'vehicle_image'
         ]
     
-    def get_primary_image(self, obj):
-        """Get the URL of the primary image if available"""
-        primary_image = obj.images.filter(is_primary=True).first()
-        if primary_image and primary_image.image:
-            request = self.context.get('request')
-            if request is not None:
-                return request.build_absolute_uri(primary_image.image.url)
+    def get_vehicle_image(self, obj):
+        """Get the URL of the vehicle image if available"""
+        try:
+            vehicle_image = obj.image  # Directly access the OneToOne relationship
+            if vehicle_image and vehicle_image.image:
+                request = self.context.get('request')
+                if request is not None:
+                    return request.build_absolute_uri(vehicle_image.image.url)
+        except VehicleImage.DoesNotExist:
+            pass
         return None
