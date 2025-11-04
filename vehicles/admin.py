@@ -23,6 +23,14 @@ class VehicleAdmin(admin.ModelAdmin):
 
 @admin.register(VehicleImage)
 class VehicleImageAdmin(admin.ModelAdmin):
-    list_display = ('vehicle', 'is_primary', 'uploaded_at')
-    list_filter = ('is_primary',)
+    list_display = ('vehicle', 'uploaded_at')
     readonly_fields = ('uploaded_at',)
+    fieldsets = (
+        (None, {
+            'fields': ('vehicle', 'image', 'caption')
+        }),
+        ('Timestamps', {
+            'fields': ('uploaded_at',),
+            'classes': ('collapse',)
+        }),
+    )

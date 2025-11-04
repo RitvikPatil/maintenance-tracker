@@ -2,15 +2,9 @@ from django.utils.translation import gettext_lazy as _
 from users.models import User
 from common.models import BaseModel
 from django.db import models
+from .constants import VehicleType
 
 class Vehicle(BaseModel):
-    class VehicleType(models.TextChoices):
-        CAR = 'car', _('Car')
-        MOTORCYCLE = 'motorcycle', _('Motorcycle')
-        TRUCK = 'truck', _('Truck')
-        SUV = 'suv', _('SUV')
-        VAN = 'van', _('Van')
-        OTHER = 'other', _('Other')
 
     # Required fields
     user = models.ForeignKey(
@@ -66,34 +60,25 @@ class Vehicle(BaseModel):
 
 
 class VehicleImage(models.Model):
-    """Model for storing vehicle images"""
-    vehicle = models.ForeignKey(
+    """Model for storing a single image per vehicle"""
+    vehicle = models.OneToOneField(
         Vehicle,
         on_delete=models.CASCADE,
-        related_name='images',
-        verbose_name=_('vehicle')
+        related_name='image',
+        verbose_name=_('vehicle'),
+        primary_key=True
     )
     image = models.ImageField(
         _('image'),
         upload_to='vehicles/images/'
     )
     caption = models.CharField(_('caption'), max_length=255, blank=True)
-    is_primary = models.BooleanField(_('primary image'), default=False)
     uploaded_at = models.DateTimeField(_('uploaded at'), auto_now_add=True)
     
     class Meta:
         verbose_name = _('vehicle image')
         verbose_name_plural = _('vehicle images')
-        ordering = ['-is_primary', 'uploaded_at']
+        ordering = ['-uploaded_at']
     
     def __str__(self):
-        return f"Image of {self.vehicle} ({self.id})"
-    
-    def save(self, *args, **kwargs):
-        # If this is set as primary, unset any other primary images for this vehicle
-        if self.is_primary:
-            VehicleImage.objects.filter(
-                vehicle=self.vehicle,
-                is_primary=True
-            ).exclude(pk=self.pk).update(is_primary=False)
-        super().save(*args, **kwargs)
+        return f"Image of {self.vehicle}"
