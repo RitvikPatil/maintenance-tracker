@@ -155,3 +155,19 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 # Email settings (for future use)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@maintenancetracker.com'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'users': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}

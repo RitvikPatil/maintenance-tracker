@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import status, generics, permissions, serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -7,6 +9,8 @@ from users.serializers.user_serializers import UserRegistrationSerializer, UserP
 
 User = get_user_model()
 
+logger = logging.getLogger(__name__)
+
 
 class UserRegistrationView(generics.CreateAPIView):
     """View for user registration"""
@@ -14,6 +18,7 @@ class UserRegistrationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
+        logger.info(f"User registration request received | User_id: {self.request.user.id}")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -28,6 +33,7 @@ class UserRegistrationView(generics.CreateAPIView):
             'message': 'User registered successfully.'
         }
         
+        logger.info(f"User {user.email} registered successfully | User_id: {user.id}")
         return Response(response_data, status=status.HTTP_201_CREATED)
 
 
@@ -37,6 +43,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        logger.debug(f"Getting user object for profile | User_id: {self.request.user.id}")
         return self.request.user
 
 
@@ -46,6 +53,7 @@ class DeleteAccountView(generics.DestroyAPIView):
     serializer_class = serializers.Serializer  # For schema generation
 
     def get_object(self):
+        logger.debug(f"Getting user object for account deletion | User_id: {self.request.user.id}")
         return self.request.user
 
     def delete(self, request, *args, **kwargs):
@@ -54,6 +62,7 @@ class DeleteAccountView(generics.DestroyAPIView):
         # Get password from request data
         password = request.data.get('password')
         if not password:
+            logger.error(f"Password not provided for user {user.email} | User_id: {user.id}")
             return Response(
                 {"password": ["This field is required."]},
                 status=status.HTTP_400_BAD_REQUEST
@@ -61,6 +70,7 @@ class DeleteAccountView(generics.DestroyAPIView):
         
         # Verify password
         if not user.check_password(password):
+            logger.error(f"Incorrect password provided for user {user.email} | User_id: {user.id}")
             return Response(
                 {"password": ["Incorrect password."]},
                 status=status.HTTP_400_BAD_REQUEST
@@ -69,6 +79,7 @@ class DeleteAccountView(generics.DestroyAPIView):
         # Delete the user
         user.delete()
         
+        logger.info(f"User {user.email} deleted successfully | User_id: {user.id}")
         return Response(
             {"message": "Account deleted successfully."},
             status=status.HTTP_204_NO_CONTENT

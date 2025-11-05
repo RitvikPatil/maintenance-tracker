@@ -16,6 +16,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     """Custom token obtain view to use our custom serializer"""
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        logger.info(f"Attempting to obtain tokens | User_id: {request.user.id}")
+        response = super().post(request, *args, **kwargs)
+        logger.info(f"Tokens obtained successfully | User_id: {request.user.id}")
+        return response
+
 class LogoutView(APIView):
     """View for user logout"""
     permission_classes = [permissions.IsAuthenticated]
@@ -23,9 +29,11 @@ class LogoutView(APIView):
     def post(self, request):
         try:
             refresh_token = request.data["refresh"]
+            logger.info(f"Logging out user with refresh token: {refresh_token} | User_id: {request.user.id}")
             token = RefreshToken(refresh_token)
             token.blacklist()
+            logger.info(f"User logged out successfully | User_id: {request.user.id}")
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            logger.error(f"Logout failed: {str(e)}")
+            logger.error(f"Logout failed: {str(e)} | User_id: {request.user.id}")
             return Response(status=status.HTTP_400_BAD_REQUEST)
