@@ -37,4 +37,9 @@ urlpatterns = [
         views.ReminderViewSet.as_view({'post': 'mark_completed'}),
         name='mark-reminder-completed'
     ),
+    path(
+        'reminders/<int:pk>/mark-uncompleted/',
+        views.ReminderViewSet.as_view({'post': 'mark_uncompleted'}),
+        name='mark-reminder-uncompleted'
+    ),
 ]

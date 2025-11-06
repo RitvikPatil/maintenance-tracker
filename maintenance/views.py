@@ -113,6 +113,14 @@ class ReminderViewSet(viewsets.ModelViewSet):
         reminder.save()
         return Response({'status': 'reminder marked as completed'})
 
+    @action(detail=True, methods=['post'])
+    def mark_uncompleted(self, request, pk=None):
+        """Mark a reminder as uncompleted"""
+        reminder = self.get_object()
+        reminder.is_completed = False
+        reminder.save()
+        return Response({'status': 'reminder marked as uncompleted'})
+
     @action(detail=False, methods=['get'])
     def upcoming(self, request):
         """Get upcoming reminders"""
